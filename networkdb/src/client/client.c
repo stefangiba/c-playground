@@ -14,8 +14,6 @@ int main(int argc, char *argv[]) {
 
   int client_fd = socket(PF_INET, SOCK_STREAM, 0);
 
-  printf("C version %d", __STDC_VERSION__);
-
   if (client_fd == -1) {
     perror("socket");
 
