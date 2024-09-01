@@ -1,8 +1,22 @@
+#include <commons/protocol.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+void handle_connection(int client_fd) {
+  char buffer[4096] = {0};
+  ProtocolHeader *header = buffer;
+  header->type = htonl(PROTO_HELLO);
+  int real_length = sizeof(int);
+  header->length = htons(real_length);
+
+  int *data = (int *)(&header[1]);
+  *data = htonl(1);
+
+  write(client_fd, header, sizeof(ProtocolHeader) + real_length);
+}
 
 int main() {
   struct sockaddr_in server_info = {0};
@@ -36,14 +50,20 @@ int main() {
   struct sockaddr_in client_info = {0};
   unsigned int client_size = 0;
 
-  int client_fd =
-      accept(server_fd, (struct sockaddr *)&client_info, &client_size);
+  while (1) {
+    int client_fd =
+        accept(server_fd, (struct sockaddr *)&client_info, &client_size);
 
-  if (client_fd == -1) {
-    perror("accept");
-    close(server_fd);
+    if (client_fd == -1) {
+      perror("accept");
+      close(server_fd);
 
-    return -1;
+      return -1;
+    }
+
+    handle_connection(client_fd);
+
+    close(client_fd);
   }
 
   close(server_fd);

@@ -1,9 +1,34 @@
 #include <arpa/inet.h>
+#include <commons/protocol.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
 #define PORT 5555
+
+void handle_connection(int fd) {
+  char buffer[4096] = {0};
+  read(fd, buffer, sizeof(ProtocolHeader) + sizeof(int));
+
+  ProtocolHeader *header = buffer;
+  header->type = ntohl(header->type);
+  header->length = ntohs(header->length);
+
+  int *data = (int *)&header[1];
+  *data = ntohl(*data);
+
+  if (header->type != PROTO_HELLO) {
+    printf("Unknown protocol type: %d\n", header->type);
+    return;
+  }
+
+  if (*data != 1) {
+    printf("Protocol version mismatch!\n");
+    return;
+  }
+
+  printf("Server connected, protocol v1.\n");
+}
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
@@ -32,6 +57,8 @@ int main(int argc, char *argv[]) {
 
     return 1;
   }
+
+  handle_connection(client_fd);
 
   close(client_fd);
 
