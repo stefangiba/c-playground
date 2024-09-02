@@ -1,72 +1,74 @@
 #include <commons/protocol.h>
-#include <netdb.h>
+#include <getopt.h>
+#include <server/sync_server.h>
 #include <stdio.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
+#include <stdlib.h>
 
-void handle_connection(int client_fd) {
-  char buffer[4096] = {0};
-  ProtocolHeader *header = buffer;
-  header->type = htonl(PROTO_HELLO);
-  int real_length = sizeof(int);
-  header->length = htons(real_length);
+#define PORT 5555
 
-  int *data = (int *)(&header[1]);
-  *data = htonl(1);
-
-  write(client_fd, header, sizeof(ProtocolHeader) + real_length);
+void usage(char *argv[]) {
+  fprintf(stderr, "usage: %s [--sync | --multiplexed | --async]\n", argv[0]);
 }
 
-int main() {
-  struct sockaddr_in server_info = {0};
-  server_info.sin_family = PF_INET;
-  server_info.sin_addr.s_addr = 0;
-  server_info.sin_port = htons(5555);
+int main(int argc, char *argv[]) {
+  int sync = 0, multiplexed = 0, async = 0;
 
-  int server_fd = socket(PF_INET, SOCK_STREAM, 0);
+  /* options descriptor */
+  struct option long_opts[] = {{"sync", no_argument, NULL, 's'},
+                               {"multiplexed", no_argument, NULL, 'm'},
+                               {"async", no_argument, NULL, 'a'},
+                               {NULL, 0, NULL, 0}};
 
-  if (server_fd == -1) {
-    perror("socket");
-
-    return 1;
+  int ch;
+  while ((ch = getopt_long(argc, argv, "asm", long_opts, NULL)) != -1) {
+    switch (ch) {
+      case 'a':
+        async = 1;
+        break;
+      case 's':
+        sync = 1;
+        break;
+      case 'm':
+        multiplexed = 1;
+        break;
+      default:
+        usage(argv);
+        exit(1);
+    }
   }
 
-  if (bind(server_fd, (struct sockaddr *)&server_info, sizeof(server_info)) ==
-      -1) {
-    perror("bind");
-    close(server_fd);
-
-    return -1;
-  }
-
-  if (listen(server_fd, 0) == -1) {
-    perror("listen");
-    close(server_fd);
-
-    return -1;
-  }
-
-  struct sockaddr_in client_info = {0};
-  unsigned int client_size = 0;
-
-  while (1) {
-    int client_fd =
-        accept(server_fd, (struct sockaddr *)&client_info, &client_size);
-
-    if (client_fd == -1) {
-      perror("accept");
-      close(server_fd);
-
-      return -1;
+  if (async) {
+    if (sync + multiplexed > 0) {
+      fprintf(stderr, "Cannot use --async with --sync or --multiplexed!\n");
+      exit(1);
     }
 
-    handle_connection(client_fd);
-
-    close(client_fd);
+    // TODO: add async multiplexed server!
+    fprintf(stderr, "Async server not implemented yet!\n");
+    exit(1);
   }
 
-  close(server_fd);
+  if (sync) {
+    if (multiplexed) {
+      // TODO: implement sync multiplexed server!
+      fprintf(stderr, "Sync multiplexed server not implemented yet!\n");
+      exit(1);
+    }
 
-  return 0;
+    return run_sync(PORT);
+  }
+
+  if (multiplexed) {
+    fprintf(stderr,
+            "Multiplexed is a feature of the sync server. Use the `--sync` "
+            "flag as well!\n");
+    // TODO: implement sync multiplexed server!
+    fprintf(stderr, "Sync multiplexed server not implemented yet!\n");
+    exit(1);
+  }
+
+  printf("No mode option specified, defaulting to SYNC!\n");
+  fprintf(stderr, "An option should have been specified!\n");
+
+  return run_sync(PORT);
 }
