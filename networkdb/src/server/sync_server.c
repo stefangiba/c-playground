@@ -37,14 +37,14 @@ int run_sync(int port) {
     perror("bind");
     close(server_fd);
 
-    return -1;
+    return 1;
   }
 
   if (listen(server_fd, 0) == -1) {
     perror("listen");
     close(server_fd);
 
-    return -1;
+    return 1;
   }
 
   struct sockaddr_in client_info = {0};
@@ -63,7 +63,7 @@ int run_sync(int port) {
       perror("accept");
       close(server_fd);
 
-      return -1;
+      return 1;
     }
 
     handle_connection(client_fd);
