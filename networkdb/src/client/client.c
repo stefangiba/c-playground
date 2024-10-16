@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <commons/constants.h>
 #include <commons/protocol.h>
 #include <stdio.h>
 #include <sys/socket.h>
@@ -34,7 +35,7 @@ int main(int argc, char *argv[]) {
   if (argc != 2) {
     printf("Usage: %s <ip>\n", argv[0]);
 
-    return 1;
+    return STATUS_ERROR;
   }
 
   int client_fd = socket(PF_INET, SOCK_STREAM, 0);
@@ -42,7 +43,7 @@ int main(int argc, char *argv[]) {
   if (client_fd == -1) {
     perror("socket");
 
-    return 1;
+    return STATUS_ERROR;
   }
 
   struct sockaddr_in server_info = {0};
@@ -55,12 +56,14 @@ int main(int argc, char *argv[]) {
     perror("connect");
     close(client_fd);
 
-    return 1;
+    return STATUS_ERROR;
   }
+
+  write(client_fd, "hello", 5);
 
   handle_connection(client_fd);
 
   close(client_fd);
 
-  return 0;
+  return STATUS_SUCCESS;
 }

@@ -1,10 +1,12 @@
-#include <commons/protocol.h>
+#include <commons/constants.h>
 #include <getopt.h>
+#include <server/sync_multiplexed_server.h>
 #include <server/sync_server.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #define PORT 5555
+#define BACKLOG 0
 
 void usage(char *argv[]) {
   fprintf(stderr, "usage: %s [--sync | --multiplexed | --async]\n", argv[0]);
@@ -33,42 +35,40 @@ int main(int argc, char *argv[]) {
         break;
       default:
         usage(argv);
-        exit(1);
+        return STATUS_ERROR;
     }
   }
 
   if (async) {
     if (sync + multiplexed > 0) {
       fprintf(stderr, "Cannot use --async with --sync or --multiplexed!\n");
-      exit(1);
+      return STATUS_ERROR;
     }
 
     // TODO: add async multiplexed server!
     fprintf(stderr, "Async server not implemented yet!\n");
-    exit(1);
+    return STATUS_ERROR;
   }
 
   if (sync) {
     if (multiplexed) {
-      // TODO: implement sync multiplexed server!
-      fprintf(stderr, "Sync multiplexed server not implemented yet!\n");
-      exit(1);
+      printf("Starting sync multiplexed server!\n");
+
+      return run_sync_multiplexed(PORT, BACKLOG);
     }
 
-    return run_sync(PORT);
+    return run_sync(PORT, BACKLOG);
   }
 
   if (multiplexed) {
     fprintf(stderr,
             "Multiplexed is a feature of the sync server. Use the `--sync` "
             "flag as well!\n");
-    // TODO: implement sync multiplexed server!
-    fprintf(stderr, "Sync multiplexed server not implemented yet!\n");
-    exit(1);
+    return STATUS_ERROR;
   }
 
   printf("No mode option specified, defaulting to SYNC!\n");
   fprintf(stderr, "An option should have been specified!\n");
 
-  return run_sync(PORT);
+  return run_sync(PORT, BACKLOG);
 }
