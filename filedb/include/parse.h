@@ -20,8 +20,7 @@ int create_db_header(int fd, struct DbHeader **header_out);
 int validate_db_header(int fd, struct DbHeader **header_out);
 int read_employees(int fd, struct DbHeader *db_header,
                    struct Employee **employees_out);
-void output_file(int fd, struct DbHeader *db_header,
-                 struct Employee *employees);
+int output_file(int fd, struct DbHeader *db_header, struct Employee *employees);
 int add_employee(struct DbHeader *, struct Employee **employees,
                  char *add_string);
 int remove_employees(struct DbHeader *db_header, struct Employee **employees,

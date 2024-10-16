@@ -74,8 +74,9 @@ int main(int argc, char *argv[]) {
       return -1;
     }
 
-    if (create_db_header(db_file_descriptor, &db_header) == STATUS_ERROR) {
+    if (create_db_header(db_file_descriptor, &db_header) != STATUS_SUCCESS) {
       printf("Failed to create database header!\n");
+      close(db_file_descriptor);
       return -1;
     }
   } else {
@@ -86,8 +87,10 @@ int main(int argc, char *argv[]) {
       return -1;
     }
 
-    if (validate_db_header(db_file_descriptor, &db_header) == STATUS_ERROR) {
+    if (validate_db_header(db_file_descriptor, &db_header) != STATUS_SUCCESS) {
       printf("Invalid database header!\n");
+      close(db_file_descriptor);
+
       return -1;
     }
   }
@@ -96,6 +99,8 @@ int main(int argc, char *argv[]) {
   if (read_employees(db_file_descriptor, db_header, &employees) !=
       STATUS_SUCCESS) {
     printf("Failed to read employees!\n");
+    close(db_file_descriptor);
+
     return -1;
   }
 
@@ -113,6 +118,7 @@ int main(int argc, char *argv[]) {
         STATUS_SUCCESS) {
       printf("Failed to update employees!\n");
       free(employees);
+      close(db_file_descriptor);
 
       return -1;
     }
@@ -123,6 +129,7 @@ int main(int argc, char *argv[]) {
         STATUS_SUCCESS) {
       printf("Failed to remove employee(s) with name: %s!\n", remove_string);
       free(employees);
+      close(db_file_descriptor);
 
       return -1;
     }
@@ -132,7 +139,13 @@ int main(int argc, char *argv[]) {
     list_employees(db_header, employees);
   }
 
-  output_file(db_file_descriptor, db_header, employees);
+  if (output_file(db_file_descriptor, db_header, employees) != STATUS_SUCCESS) {
+    printf("Failed to write to file!\n");
+    free(employees);
+    close(db_file_descriptor);
+
+    return -1;
+  }
 
   return 0;
 }

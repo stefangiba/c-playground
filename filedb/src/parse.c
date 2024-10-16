@@ -188,11 +188,11 @@ void list_employees(struct DbHeader *db_header, struct Employee *employees) {
   }
 }
 
-void output_file(int fd, struct DbHeader *db_header,
-                 struct Employee *employees) {
+int output_file(int fd, struct DbHeader *db_header,
+                struct Employee *employees) {
   if (fd < 0) {
     printf("Invalid file descriptor!\n");
-    return;
+    return STATUS_ERROR;
   }
 
   int real_count = db_header->count;
@@ -203,12 +203,29 @@ void output_file(int fd, struct DbHeader *db_header,
       htonl(sizeof(struct DbHeader) + sizeof(struct Employee) * real_count);
   db_header->count = htons(db_header->count);
 
-  lseek(fd, 0, SEEK_SET);
+  if (lseek(fd, 0, SEEK_SET) == -1) {
+    perror("lseek");
+    return STATUS_ERROR;
+  }
 
-  write(fd, db_header, sizeof(struct DbHeader));
+  if (ftruncate(fd, 0) == -1) {
+    perror("ftruncate");
+    return STATUS_ERROR;
+  }
+
+  if (write(fd, db_header, sizeof(struct DbHeader)) == -1) {
+    perror("write");
+    return STATUS_ERROR;
+  }
 
   for (int i = 0; i < real_count; i++) {
     employees[i].hours = htonl(employees[i].hours);
-    write(fd, &employees[i], sizeof(struct Employee));
   }
+
+  if (write(fd, employees, sizeof(struct Employee) * real_count) == -1) {
+    perror("write");
+    return STATUS_ERROR;
+  }
+
+  return STATUS_SUCCESS;
 }
