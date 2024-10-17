@@ -11,7 +11,12 @@ CLIENT_TARGET = $(BUILD_ROOT)/$(BIN_DIR)/networkdb-client
 CLIENT_SRC = $(wildcard src/client/*.c)
 CLIENT_OBJ = $(patsubst src/%.c, $(BUILD_ROOT)/$(OBJ_DIR)/%.o, $(CLIENT_SRC))
 
-build: clean $(SERVER_TARGET) $(CLIENT_TARGET)
+build: clean test
+
+test: compile
+	echo "TODO: implement tests"
+
+compile: $(SERVER_TARGET) $(CLIENT_TARGET)
 
 clean:
 	rm -f $(BUILD_ROOT)/$(OBJ_DIR)/**/*.o
