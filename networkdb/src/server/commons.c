@@ -19,15 +19,26 @@ void handle_connection(int client_fd) {
 }
 
 int start_server(int port, unsigned int backlog) {
+  int opt = 1;
   struct sockaddr_in server_info = {0};
   server_info.sin_family = AF_INET;
-  server_info.sin_addr.s_addr = 0;
+  server_info.sin_addr.s_addr = INADDR_ANY;
   server_info.sin_port = htons(port);
 
   int server_fd = socket(AF_INET, SOCK_STREAM, 0);
 
   if (server_fd == -1) {
     perror("socket");
+
+    return STATUS_ERROR;
+  }
+
+  // for more useful information regarding SO_REUSEADDR, please see
+  // https://stackoverflow.com/questions/14388706/how-do-so-reuseaddr-and-so-reuseport-differ
+  if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) ==
+      -1) {
+    perror("setsockopt");
+    close(server_fd);
 
     return STATUS_ERROR;
   }

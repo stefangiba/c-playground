@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
     return STATUS_ERROR;
   }
 
-  write(client_fd, "hello", 5);
+  write(client_fd, "hello", 6);
 
   handle_connection(client_fd);
 

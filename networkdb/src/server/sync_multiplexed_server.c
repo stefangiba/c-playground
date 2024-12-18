@@ -15,6 +15,7 @@
 #define BUFF_SIZE 4096
 
 typedef enum {
+  NEW,
   CONNECTED,
   DISCONNECTED,
 } ConnectionState;
@@ -27,8 +28,8 @@ typedef struct {
 
 void init_clients(Client clients[], int num_clients) {
   for (int i = 0; i < num_clients; i++) {
-    clients[i].fd = -1;
-    clients[i].state = DISCONNECTED;
+    clients[i].fd = -1;  // indicates a free slot
+    clients[i].state = NEW;
     memset(clients[i].buffer, '\0', BUFF_SIZE);
   }
 }
@@ -62,7 +63,7 @@ int select_impl(int port, unsigned int backlog) {
   Client clients[MAX_CONNECTIONS];
   init_clients(clients, MAX_CONNECTIONS);
 
-  int free_slot;
+  int nfds;
   fd_set read_fds, write_fds;
   struct sockaddr_in client_addr;
   socklen_t client_len = sizeof(client_addr);
@@ -71,15 +72,17 @@ int select_impl(int port, unsigned int backlog) {
     FD_ZERO(&read_fds);
     FD_ZERO(&write_fds);
     FD_SET(server_fd, &read_fds);
+    nfds = server_fd + 1;
 
     for (int idx = 0; idx < MAX_CONNECTIONS; idx++) {
       Client *client = &clients[idx];
       if (client->fd != -1) {
         FD_SET(client->fd, &read_fds);
+        if (client->fd >= nfds) nfds = client->fd + 1;
       }
     }
 
-    if (select(FD_SETSIZE, &read_fds, &write_fds, NULL, NULL) == -1) {
+    if (select(nfds, &read_fds, &write_fds, NULL, NULL) == -1) {
       perror("select");
       close(server_fd);
 
@@ -98,7 +101,7 @@ int select_impl(int port, unsigned int backlog) {
       printf("New incoming connection from %s:%d\n",
              inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 
-      free_slot = find_free_slot(clients, MAX_CONNECTIONS);
+      int free_slot = find_free_slot(clients, MAX_CONNECTIONS);
       if (free_slot == -1) {
         printf(
             "Maximum client connections reached! Closing incoming "
@@ -119,18 +122,18 @@ int select_impl(int port, unsigned int backlog) {
 
       printf("Processing client %d\n", idx);
 
-      ssize_t nread =
-          read(client->fd, client->buffer, sizeof(client->buffer) - 1);
+      ssize_t bytes_read =
+          read(client->fd, client->buffer, sizeof(client->buffer));
 
-      printf("Read %zd bytes from client %d\n", nread, idx);
+      printf("Read %zd bytes from client %d\n", bytes_read, idx);
 
-      if (nread <= 0) {
+      if (bytes_read <= 0) {
         close(client->fd);
 
         // Client clean-up
         client->fd = -1;
         client->state = DISCONNECTED;
-        memset(&client->buffer, 0, BUFF_SIZE);
+        memset(client->buffer, 0, BUFF_SIZE);
         printf("Client %d disconnected\n", idx);
 
         continue;
@@ -159,7 +162,6 @@ int poll_impl(int port, unsigned int backlog) {
   int server_fd, conn_fd, free_slot;
   struct sockaddr_in server_addr, client_addr;
   socklen_t client_len = sizeof(client_addr);
-
   struct pollfd fds[MAX_CONNECTIONS + 1];
 
   server_fd = start_server(port, backlog);
@@ -176,8 +178,8 @@ int poll_impl(int port, unsigned int backlog) {
 
   while (1) {
     int nfds = 1;
-    for (int client_idx = 0; client_idx < MAX_CONNECTIONS; client_idx++) {
-      Client *client = &clients[client_idx];
+    for (int idx = 0; idx < MAX_CONNECTIONS; idx++) {
+      Client *client = &clients[idx];
 
       if (client->fd == -1) {
         continue;
@@ -223,14 +225,14 @@ int poll_impl(int port, unsigned int backlog) {
 
     // Check each client for read / write connectivity
     // start from 1 to skip the server_fd
-    for (int i = 1; i < nfds && n_events > 0; i++) {
-      if (!(fds[i].revents & POLLIN)) {
+    for (int idx = 1; idx < nfds && n_events > 0; idx++) {
+      if (!(fds[idx].revents & POLLIN)) {
         continue;
       }
 
       n_events--;
 
-      int client_idx = find_slot_by_fd(clients, MAX_CONNECTIONS, fds[i].fd);
+      int client_idx = find_slot_by_fd(clients, MAX_CONNECTIONS, fds[idx].fd);
       if (client_idx == -1) {
         printf("Client not found!\n");
         continue;
@@ -246,7 +248,7 @@ int poll_impl(int port, unsigned int backlog) {
         // Client clean-up
         client->fd = -1;
         client->state = DISCONNECTED;
-        memset(clients->buffer, 0, BUFF_SIZE);
+        memset(client->buffer, 0, BUFF_SIZE);
         printf("Client %d disconnected\n", client_idx);
 
         continue;
