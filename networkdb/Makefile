@@ -1,6 +1,5 @@
 include ../Makefile.variables
 
-CC = gcc
 BUILD_ROOT = ../$(BUILD_DIR)/networkdb
 
 SERVER_TARGET = $(BUILD_ROOT)/$(BIN_DIR)/networkdb
