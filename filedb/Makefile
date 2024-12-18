@@ -1,10 +1,9 @@
 include ../Makefile.variables
 
-CC = gcc
 EXECUTABLE_NAME = filedb
 BUILD_ROOT = ../$(BUILD_DIR)/$(EXECUTABLE_NAME)
 TARGET = $(BUILD_ROOT)/$(BIN_DIR)/$(EXECUTABLE_NAME)
-SRC = $(wildcard src/*.c)
+SRC = $(call rwildcard,src,*.c)
 OBJ = $(patsubst src/%.c, $(BUILD_ROOT)/$(OBJ_DIR)/%.o, $(SRC))
 
 build: clean test
@@ -18,7 +17,7 @@ test: compile
 compile: $(TARGET)
 
 clean:
-	rm -f $(BUILD_ROOT)/$(OBJ_DIR)/*.o
+	rm -f $(BUILD_ROOT)/$(OBJ_DIR)/**/*.o
 	rm -f $(BUILD_ROOT)/$(BIN_DIR)/*
 	rm -f *.db
 

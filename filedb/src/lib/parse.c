@@ -106,9 +106,8 @@ int read_employees(int fd, struct DbHeader *db_header,
 
 int add_employee(struct DbHeader *db_header, struct Employee **employees,
                  char *add_string) {
-  db_header->count++;
   struct Employee *temp =
-      realloc(*employees, (db_header->count) * sizeof(struct Employee));
+      realloc(*employees, (db_header->count + 1) * sizeof(struct Employee));
 
   if (temp == NULL) {
     printf("Failed to allocate memory for new employee!\n");
@@ -121,6 +120,8 @@ int add_employee(struct DbHeader *db_header, struct Employee **employees,
   char *addr = strtok(NULL, ",");
   char *hours_str = strtok(NULL, ",");
 
+  db_header->count++;
+  
   struct Employee *employees_arr = *employees;
 
   strncpy(employees_arr[db_header->count - 1].name, name,

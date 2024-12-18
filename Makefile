@@ -5,7 +5,7 @@ default: filedb networkdb
 filedb:
 	$(MAKE) -C filedb
 
-networkdb:
+networkdb: filedb
 	$(MAKE) -C networkdb
 
 clean:
