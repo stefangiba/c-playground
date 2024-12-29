@@ -1,5 +1,6 @@
 #include "parse.h"
 
+#include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -121,7 +122,7 @@ int add_employee(struct DbHeader *db_header, struct Employee **employees,
   char *hours_str = strtok(NULL, ",");
 
   db_header->count++;
-  
+
   struct Employee *employees_arr = *employees;
 
   strncpy(employees_arr[db_header->count - 1].name, name,
