@@ -6,8 +6,8 @@
 #include <unistd.h>
 
 void handle_connection(int client_fd) {
-  char buffer[4096] = {0};
-  ProtocolHeader *header = buffer;
+  char buffer[sizeof(ProtocolHeader) + sizeof(int)] = {0};
+  ProtocolHeader *header = (ProtocolHeader *) buffer;
   header->type = htonl(PROTO_HELLO);
   int real_length = sizeof(int);
   header->length = htons(real_length);

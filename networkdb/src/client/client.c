@@ -8,10 +8,10 @@
 #define PORT 5555
 
 void handle_connection(int fd) {
-  char buffer[4096] = {0};
+  char buffer[sizeof(ProtocolHeader) + sizeof(int)] = {0};
   read(fd, buffer, sizeof(ProtocolHeader) + sizeof(int));
 
-  ProtocolHeader *header = buffer;
+  ProtocolHeader *header = (ProtocolHeader *) buffer;
   header->type = ntohl(header->type);
   header->length = ntohs(header->length);
 
