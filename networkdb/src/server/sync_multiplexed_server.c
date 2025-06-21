@@ -130,6 +130,10 @@ int select_impl(int port, unsigned int backlog) {
       printf("Read %zd bytes from client %d\n", bytes_read, idx);
 
       if (bytes_read <= 0) {
+        if (bytes_read < 0) {
+          perror("read");
+        }
+
         close(client->fd);
 
         // Client clean-up
@@ -139,6 +143,10 @@ int select_impl(int port, unsigned int backlog) {
         printf("Client %d disconnected\n", idx);
 
         continue;
+      }
+
+      if (bytes_read < BUFF_SIZE) {
+        client->buffer[bytes_read] = '\0';
       }
 
       printf("Received message from client %d: %s\n", idx, client->buffer);
