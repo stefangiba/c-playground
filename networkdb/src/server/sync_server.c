@@ -1,11 +1,12 @@
-#include <commons/constants.h>
 #include <netdb.h>
-#include <server/commons.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include "commons/constants.h"
+#include "server/commons.h"
 
 int run_sync(int port, unsigned int backlog) {
   int server_fd = start_server(port, backlog);

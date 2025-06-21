@@ -1,13 +1,14 @@
 #include <arpa/inet.h>
-#include <commons/constants.h>
-#include <commons/protocol.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "commons/constants.h"
+#include "commons/protocol.h"
+
 void handle_connection(int client_fd) {
   char buffer[sizeof(ProtocolHeader) + sizeof(int)] = {0};
-  ProtocolHeader *header = (ProtocolHeader *) buffer;
+  ProtocolHeader *header = (ProtocolHeader *)buffer;
   header->type = htonl(PROTO_HELLO);
   int real_length = sizeof(int);
   header->length = htons(real_length);

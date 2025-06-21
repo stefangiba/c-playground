@@ -1,9 +1,10 @@
 #include <arpa/inet.h>
-#include <commons/constants.h>
-#include <commons/protocol.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
+#include "commons/constants.h"
+#include "commons/protocol.h"
 
 #define PORT 5555
 
@@ -11,7 +12,7 @@ void handle_connection(int fd) {
   char buffer[sizeof(ProtocolHeader) + sizeof(int)] = {0};
   read(fd, buffer, sizeof(ProtocolHeader) + sizeof(int));
 
-  ProtocolHeader *header = (ProtocolHeader *) buffer;
+  ProtocolHeader *header = (ProtocolHeader *)buffer;
   header->type = ntohl(header->type);
   header->length = ntohs(header->length);
 

@@ -6,8 +6,8 @@
 #include <unistd.h>
 
 #include "common.h"
-#include "file.h"
-#include "parse.h"
+#include "lib/file.h"
+#include "lib/parse.h"
 
 void print_usage(char *argv[]) {
   printf("Usage:  %s -n -f <database file>", argv[0]);

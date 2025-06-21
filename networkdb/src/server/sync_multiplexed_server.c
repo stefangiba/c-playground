@@ -1,8 +1,6 @@
 #include <arpa/inet.h>
-#include <commons/constants.h>
 #include <netdb.h>
 #include <poll.h>
-#include <server/commons.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +9,9 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include "commons/constants.h"
+#include "server/commons.h"
 
 #define MAX_CONNECTIONS 256
 #define BUFF_SIZE 4096

@@ -1,9 +1,10 @@
-#include <commons/constants.h>
 #include <getopt.h>
-#include <server/sync_multiplexed_server.h>
-#include <server/sync_server.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "commons/constants.h"
+#include "server/sync_multiplexed_server.h"
+#include "server/sync_server.h"
 
 #define PORT 5555
 #define BACKLOG 0
