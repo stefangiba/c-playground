@@ -244,7 +244,12 @@ int poll_impl(int port, unsigned int backlog) {
       ssize_t bytes_read =
           read(client->fd, client->buffer, sizeof(client->buffer) - 1);
 
+      // Handle EOF or error
       if (bytes_read <= 0) {
+        if (bytes_read < 0) {
+          perror("read");
+        }
+
         close(client->fd);
 
         // Client clean-up
@@ -254,6 +259,12 @@ int poll_impl(int port, unsigned int backlog) {
         printf("Client %d disconnected\n", client_idx);
 
         continue;
+      }
+
+      // NULL terminate the buffer, since the I/O functions don't NULL terminate
+      // by default
+      if (bytes_read < BUFF_SIZE) {
+        client->buffer[bytes_read] = '\0';
       }
 
       printf("Received message from client %d: %s\n", client_idx,
